@@ -4,6 +4,7 @@ const isLogin = require('../middlewares/isLogin')
 
 route
   .post('/', isLogin, PostController.createPost)
+  .put('/:id', isLogin, PostController.updatePost)
   .delete('/:id', isLogin, PostController.removePost)
   .get('/:id', PostController.getPostDetail)
   .get('/', PostController.getAllPost)

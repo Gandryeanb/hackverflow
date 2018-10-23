@@ -1,5 +1,5 @@
 <template>
-  <MainFormInput :mode="'update'" :post="post" v-if="post !== ''"/>
+  <MainFormInput :mode="'update'" :post="post" v-if="post !== ''" @reload="$emit('reload')"/>
 </template>
 
 <script>

@@ -25,6 +25,11 @@
 </template>
 
 <script>
+import axios from 'axios'
+import config from '@/assets/config'
+
+const { host } = config
+
 export default {
   name: 'MainFormInput',
   props: ['mode', 'post'],

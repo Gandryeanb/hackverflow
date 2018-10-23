@@ -4,6 +4,115 @@ const Comment = require('../models/commentModel')
 const tagSplitter = require('../helpers/tagSpliter')
 
 class PostController {
+
+  static updatePost(req, res) {
+    Post.updateOne({
+        _id: req.params.id
+      }, {
+        tagId: []
+      })
+      .then(data => {
+        let tagList = tagSplitter(req.body.tagName)
+        let createdTag = []
+        let uncreatedTag = []
+
+        let checkTag = new Promise((resolve, reject) => {
+          for (let i = 0; i < tagList.length; i++) {
+            Tag.findOne({
+                name: tagList[i]
+              })
+              .then(data => {
+                if (data) {
+                  createdTag.push(data._id)
+                  if (i === tagList.length - 1) {
+                    resolve()
+                  }
+                } else {
+                  uncreatedTag.push(tagList[i])
+                  if (i === tagList.length - 1) {
+                    resolve()
+                  }
+                }
+              })
+              .catch(err => {
+                reject()
+              })
+          }
+        })
+
+        Promise.all([checkTag])
+          .then(data => {
+            let creatingTag = new Promise((resolve, reject) => {
+              if (uncreatedTag.length !== 0 && uncreatedTag[0] !== '') {
+                for (let i = 0; i < uncreatedTag.length; i++) {
+                  let newData = {
+                    name: uncreatedTag[i]
+                  }
+
+                  let tag = new Tag(newData)
+
+                  tag
+                    .save()
+                    .then(data => {
+                      createdTag.push(data._id)
+
+                      if (i === uncreatedTag.length - 1) {
+                        resolve()
+                      }
+                    })
+                    .catch(err => {
+                      reject()
+                    })
+                }
+              } else {
+                resolve()
+              }
+            })
+
+            Promise.all([creatingTag])
+              .then(data => {
+                Post.updateOne({
+                    _id: req.params.id
+                  }, {
+                    title: req.body.title,
+                    description: req.body.descriptionHTML,
+                    tagId: createdTag,
+                  })
+                  .then(data => {
+                    res.status(201).json({
+                      status: 'success',
+                      message: 'data updated successfully'
+                    })
+                  })
+                  .catch(err => {
+                    res.status(500).json({
+                      status: 'failed',
+                      message: err.message
+                    })
+                  })
+              })
+              .catch(err => {
+                res.status(500).json({
+                  status: 'failed',
+                  message: 'failed creating post2'
+                })
+              })
+          })
+          .catch(err => {
+            res.status(500).json({
+              status: 'failed',
+              message: 'error when creating post3'
+            })
+          })
+      })
+      .catch(err => {
+        res.status(500).json({
+          status: 'failed',
+          message: err.message
+        })
+      })
+  }
+
   static createPost(req, res) {
     let tagList = tagSplitter(req.body.tagName)
     let createdTag = []
