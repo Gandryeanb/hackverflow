@@ -1,0 +1,105 @@
+<template>
+  <div class="ui centered grid">
+    <div class="ui four wide column" style="margin-top: 50px;">
+      <h2 style="color: teal">Login</h2>
+      <div class="ui segment form">
+        <div class="ui field">
+          <label>Email: </label>
+          <div class="ui icon input">
+            <i class="ui user icon"></i>
+            <input type="text" placeholder="Email" v-model="emailForm">
+          </div>
+        </div>
+        <div class="ui field">
+          <label>Password: </label>
+          <div class="ui icon input">
+            <i class="ui lock icon"></i>
+            <input type="Password" placeholder="Password" v-model="passwordForm">
+          </div>
+        </div>
+        <div class="ui field">
+            <button class="ui teal fluid button" @click="login">Login</button>
+        </div>
+        <div class="ui field">
+          <div id="my-signin2" style="width:100px" @click="loginGoogle"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import axios from 'axios'
+import config from '@/assets/config'
+import { mapActions, mapState } from 'vuex'
+
+const { host } = config
+
+export default {
+  name: 'Login',
+  data() {
+    return {
+      emailForm: '',
+      passwordForm: ''
+    }
+  },
+  computed: {
+    ...mapState(['currentUser'])
+  },
+  created() {
+    let token = localStorage.getItem('token')
+    if (token) {
+      this.$router.push({ path: '/' })
+    }
+  },
+  mounted() {
+    gapi.signin2.render('my-signin2', {
+      scope: 'profile email',
+      width: 320,
+      onsuccess: this.loginGoogle
+    })
+  },
+  methods: {
+    ...mapActions(['getCurrentUser']),
+    loginGoogle(val) {
+      let token = val.Zi.id_token
+      axios({
+        url: 'http://localhost:3000/users/login/google',
+        headers: {
+          token: token
+        }
+      })
+        .then(data => {
+          localStorage.setItem('token', data.data.token)
+          this.getCurrentUser()
+          this.$router.push({ path: '/' })
+        })
+        .catch(err => {
+          console.log(err.response)
+        })
+    },
+    login() {
+      axios({
+        url: host + '/users/login',
+        method: 'post',
+        data: {
+          email: this.emailForm,
+          password: this.passwordForm
+        }
+      })
+        .then(data => {
+          localStorage.setItem('token', data.data.token)
+          this.getCurrentUser()
+          this.$router.push('/')
+        })
+        .catch(err => {
+          console.log(err.response.data.message)
+        })
+    }
+  }
+}
+</script>
+
+<style>
+
+</style>
