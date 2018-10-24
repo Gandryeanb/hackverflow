@@ -39,6 +39,14 @@
         <div class="ui field" style="margin-top: 20px;">
           <button class="ui teal small fluid button" @click="register">Submit</button>
         </div>
+        <div class="ui field">
+          <div class="" v-if="notif.header" :class="propertyNotif">
+            <div class="header">
+              {{ notif.header }}
+            </div>
+            <p>{{ notif.msg }}</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -59,7 +67,13 @@ export default {
       lnameForm: '',
       emailForm: '',
       pass1Form: '',
-      pass2Form: ''
+      pass2Form: '',
+
+      propertyNotif: 'ui mini positive message',
+      notif: {
+        header: null,
+        msg: null
+      }
     }
   },
   computed: {
@@ -86,12 +100,31 @@ export default {
         })
           .then(data => {
             console.log(data.data)
+            this.propertyNotif = 'ui mini positive message'
+            this.notif = {
+              header: 'Your user registration was successful.',
+              msg: 'You may now verify you account and login to the login page'
+            }
+
+            setTimeout(() => {
+              this.$router.push({ path: '/login' })
+            }, 5000)
           })
           .catch(err => {
             console.log(err.response)
+            this.propertyNotif = 'ui mini negative message'
+            this.notif = {
+              header: 'Your user registration was unsuccessful.',
+              msg: err.response.data.message
+            }
           })
       } else {
         console.log(`your password did'nt match`)
+        this.propertyNotif = 'ui mini negative message'
+        this.notif = {
+          header: 'Your user registration was unsuccessful.',
+          msg: "your password did'nt match"
+        }
       }
     }
   }

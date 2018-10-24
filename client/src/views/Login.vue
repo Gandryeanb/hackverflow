@@ -23,6 +23,14 @@
         <div class="ui field">
           <div id="my-signin2" style="width:100px" @click="loginGoogle"></div>
         </div>
+        <div class="ui field">
+          <div class="" v-if="notif.header" :class="propertyNotif">
+            <div class="header">
+              {{ notif.header }}
+            </div>
+            <p>{{ notif.msg }}</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -40,7 +48,13 @@ export default {
   data() {
     return {
       emailForm: '',
-      passwordForm: ''
+      passwordForm: '',
+
+      propertyNotif: '',
+      notif: {
+        header: null,
+        msg: null
+      }
     }
   },
   computed: {
@@ -60,7 +74,7 @@ export default {
     })
   },
   methods: {
-    ...mapActions(['getCurrentUser']),
+    ...mapActions(['getCurrentUser', 'resetShowSearchBox']),
     loginGoogle(val) {
       let token = val.Zi.id_token
       axios({
@@ -72,6 +86,7 @@ export default {
         .then(data => {
           localStorage.setItem('token', data.data.token)
           this.getCurrentUser()
+          this.resetShowSearchBox(true)
           this.$router.push({ path: '/' })
         })
         .catch(err => {
@@ -90,10 +105,16 @@ export default {
         .then(data => {
           localStorage.setItem('token', data.data.token)
           this.getCurrentUser()
+          this.resetShowSearchBox(true)
           this.$router.push('/')
         })
         .catch(err => {
           console.log(err.response.data.message)
+          this.propertyNotif = 'ui mini negative message'
+          this.notif = {
+            header: 'Your user registration was unsuccessful.',
+            msg: err.response.data.message
+          }
         })
     }
   }

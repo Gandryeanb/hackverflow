@@ -5,6 +5,26 @@ const tagSplitter = require('../helpers/tagSpliter')
 
 class PostController {
 
+  static addViewed(req, res) {
+    Post.updateOne({
+        _id: req.params.id
+      }, {
+        views: req.decoded.id
+      })
+      .then(data => {
+        res.status(200).json({
+          status: 'success',
+          message: 'adding views success'
+        })
+      })
+      .catch(err => {
+        res.status(500).json({
+          status: 'failed',
+          message: err.message
+        })
+      })
+  }
+
   static updatePost(req, res) {
     Post.updateOne({
         _id: req.params.id
@@ -71,18 +91,51 @@ class PostController {
 
             Promise.all([creatingTag])
               .then(data => {
-                Post.updateOne({
-                    _id: req.params.id
+                Tag.updateMany({
+                    postId: req.params.id
                   }, {
-                    title: req.body.title,
-                    description: req.body.descriptionHTML,
-                    tagId: createdTag,
+                    $pull: {
+                      postId: req.params.id
+                    }
                   })
                   .then(data => {
-                    res.status(201).json({
-                      status: 'success',
-                      message: 'data updated successfully'
-                    })
+                    Post.updateOne({
+                        _id: req.params.id
+                      }, {
+                        title: req.body.title,
+                        description: req.body.descriptionHTML,
+                        tagId: createdTag,
+                      })
+                      .then(data => {
+
+                        Tag.updateMany({
+                            _id: {
+                              $in: createdTag
+                            }
+                          }, {
+                            $push: {
+                              postId: req.params.id
+                            }
+                          })
+                          .then(data => {
+                            res.status(200).json({
+                              status: 'success',
+                              message: 'data updated successfully'
+                            })
+                          })
+                          .catch(err => {
+                            res.status(500).json({
+                              status: 'failed',
+                              message: err.message
+                            })
+                          })
+                      })
+                      .catch(err => {
+                        res.status(500).json({
+                          status: 'failed',
+                          message: err.message
+                        })
+                      })
                   })
                   .catch(err => {
                     res.status(500).json({
@@ -94,7 +147,8 @@ class PostController {
               .catch(err => {
                 res.status(500).json({
                   status: 'failed',
-                  message: 'failed creating post2'
+                  message: 'failed creating post2',
+                  err: err.message
                 })
               })
           })
@@ -173,28 +227,51 @@ class PostController {
 
         Promise.all([creatingTag])
           .then(data => {
-            let posData = {
-              title: req.body.title,
-              description: req.body.descriptionHTML,
-              tagId: createdTag,
-              userId: req.decoded.id
-            }
-            let pos = new Post(posData)
 
-            pos
-              .save()
-              .then(data => {
-                res.status(201).json({
-                  status: 'success',
-                  data
+            setTimeout(() => {
+
+              console.log(createdTag)
+              let posData = {
+                title: req.body.title,
+                description: req.body.descriptionHTML,
+                tagId: createdTag,
+                userId: req.decoded.id
+              }
+              let pos = new Post(posData)
+
+              pos
+                .save()
+                .then(dataPost => {
+                  Tag.updateMany({
+                      _id: {
+                        $in: createdTag
+                      }
+                    }, {
+                      $push: {
+                        postId: dataPost._id
+                      }
+                    })
+                    .then(data => {
+                      res.status(201).json({
+                        status: 'success',
+                        dataPost
+                      })
+                    })
+                    .catch(err => {
+                      res.status(500).json({
+                        status: 'failed',
+                        message: err.message
+                      })
+                    })
                 })
-              })
-              .catch(err => {
-                res.status(500).json({
-                  status: 'failed',
-                  message: err.message
+                .catch(err => {
+                  res.status(500).json({
+                    status: 'failed',
+                    message: err.message
+                  })
                 })
-              })
+            }, 100)
+
           })
           .catch(err => {
             res.status(500).json({
@@ -207,6 +284,35 @@ class PostController {
         res.status(500).json({
           status: 'failed',
           message: 'error when creating post3'
+        })
+      })
+  }
+
+  static getPostByQuery(req, res) {
+    Post.find({
+        title: {
+          $regex: req.params.title,
+          $options: 'i'
+        }
+      })
+      .populate('tagId')
+      .populate('userId')
+      .populate({
+        path: 'commentId',
+        populate: {
+          path: 'userId'
+        }
+      })
+      .then(data => {
+        res.status(200).json({
+          status: 'success',
+          data
+        })
+      })
+      .catch(err => {
+        res.status(500).json({
+          status: 'failed',
+          message: err.message
         })
       })
   }
@@ -367,10 +473,25 @@ class PostController {
                 _id: req.params.id
               })
               .then(data => {
-                res.status(200).json({
-                  status: 'success',
-                  message: 'deleting post success'
-                })
+                Tag.updateMany({
+                    postId: req.params.id
+                  }, {
+                    $pull: {
+                      postId: req.params.id
+                    }
+                  })
+                  .then(data => {
+                    res.status(200).json({
+                      status: 'success',
+                      message: 'deleting post success'
+                    })
+                  })
+                  .catch(err => {
+                    res.status(500).json({
+                      status: 'failed',
+                      message: 'deleting post failed'
+                    })
+                  })
               })
               .catch(err => {
                 res.status(500).json({

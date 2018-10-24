@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <NavBarTop/>
-    <router-view style="margin-top:70px;"/>
+    <NavBarTop @queryPost="queryChanger($event)"/>
+    <router-view style="margin-top:70px;" :query="query"/>
   </div>
 </template>
 
@@ -11,7 +11,9 @@ import { mapActions } from 'vuex'
 export default {
   name: 'app',
   data() {
-    return {}
+    return {
+      query: ''
+    }
   },
   created() {
     let token = localStorage.getItem('token')
@@ -20,7 +22,10 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['getCurrentUser'])
+    ...mapActions(['getCurrentUser']),
+    queryChanger(val) {
+      this.query = val
+    }
   },
   components: {
     NavBarTop

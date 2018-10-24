@@ -8,6 +8,8 @@ import AllPost from './views/AllPost.vue'
 import CreatePost from './views/CreatePost.vue'
 import DetailPost from './views/DetailPost.vue'
 import UpdatePost from './views/UpdatePost.vue'
+import Tag from './views/Tag'
+import Verify from './views/Verify.vue'
 
 Vue.use(Router)
 
@@ -27,6 +29,10 @@ export default new Router({
       name: 'AllPost',
       component: AllPost
     }, {
+      path: '/post/tag',
+      name: 'Tag',
+      component: Tag
+    }, {
       path: '/post/create',
       name: 'CreatePost',
       component: CreatePost
@@ -39,10 +45,15 @@ export default new Router({
       name: 'DetailPost',
       component: DetailPost
     }]
+
   }, {
     path: '/login',
     name: 'Login',
     component: Login
+  }, {
+    path: '/verify/:id',
+    name: 'Verify',
+    component: Verify
   }, {
     path: '/register',
     name: 'Register',

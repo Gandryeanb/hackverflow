@@ -5,6 +5,7 @@ const port = process.env.PORT || 80
 const cors = require('cors')
 const mongoose = require('mongoose')
 const db = mongoose.connection
+const kue = require('kue')
 
 mongoose.set('useCreateIndex', true)
 mongoose.connect(process.env.DB_DEV || process.env.DB_PRODUCTION, {
@@ -42,3 +43,7 @@ db
   .once('open', function () {
     console.log(`> BD Connected`)
   });
+
+kue.app.listen(3001, () => {
+  console.log('> Kue On Server Online')
+})

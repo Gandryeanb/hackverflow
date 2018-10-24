@@ -1,15 +1,15 @@
 <template>
 <div>
-  <div class="ui centered grid segment" style="position: fixed; width: 100%;  top: 0; margin-top: 0px; z-index:1">
+  <div class="ui centered grid segment" style="position: fixed; width: 100%;  top: 0; margin-top: 0px; z-index:9">
     <div class="ui two wide column">
       <a href="#"><h2 style="color:teal;" @click="toHomePage">
         Hackverflow
       </h2></a>
     </div>
     <div class="ui seven wide column form">
-      <div class="ui fluid small icon input" v-if="showSearchBar">
+      <div class="ui fluid small icon input" v-if="showSearchBar || changeShowSearchBox">
         <i class="search icon"></i>
-        <input type="text" placeholder="Search Question..">
+        <input type="text" placeholder="Search Question.." v-model="searchQuery">
       </div>
     </div>
     <div class="ui two wide column">
@@ -32,23 +32,46 @@ export default {
   name: 'NavBarTop',
   data() {
     return {
-      showSearchBar: true,
+      showSearchBar: false,
       showRegistBtn: true,
-      showLoginBtn: true
+      showLoginBtn: true,
+
+      searchQuery: ''
     }
   },
   computed: {
-    ...mapState(['currentUser'])
+    ...mapState(['currentUser', 'changeShowSearchBox'])
+  },
+  created() {
+    let path = this.$router.history.current.path
+
+    if (path !== '/post') {
+      this.showSearchBar = false
+    } else {
+      console.log(this.$router.history.current.path)
+    }
   },
   watch: {
+    searchQuery() {
+      this.$emit('queryPost', this.searchQuery)
+    },
     currentUser: {
       handler() {
         if (this.currentUser.id === null) {
           this.showRegistBtn = true
           this.showLoginBtn = true
-          this.showSearchBar = true
         }
-        this.showSearchBar = true
+      },
+      deep: true
+    },
+    changeShowSearchBox: {
+      handler() {
+        if (this.changeShowSearchBox) {
+          this.showSearchBar = true
+          console.log('cgange search bar show')
+        } else {
+          this.showSearchBar = false
+        }
       },
       deep: true
     }

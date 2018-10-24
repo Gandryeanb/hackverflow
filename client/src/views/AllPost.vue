@@ -17,11 +17,20 @@
 
 <script>
 import PostCard from '@/components/PostCard'
+import { mapActions } from 'vuex'
+
 export default {
   name: 'AllPost',
   props: ['postList'],
   components: {
     PostCard
+  },
+  created() {
+    console.log('masuk post')
+    this.resetShowSearchBox(true)
+  },
+  methods: {
+    ...mapActions(['resetShowSearchBox'])
   }
 }
 </script>

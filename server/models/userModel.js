@@ -8,10 +8,34 @@ const userSchema = new Schema({
   },
   fname: {
     type: String,
-    required: [true, 'fname required']
+    required: [true, 'fname required'],
+    validate: {
+      validator() {
+        if (this.fname.length < 3) {
+          throw new Error('First name length must be greater than 2')
+        }
+        let patt = new RegExp(/\d/)
+        if (patt.test(this.fname)) {
+          throw new Error('First name must be contained with characther only')
+        }
+      }
+    }
   },
   lname: {
-    type: String
+    type: String,
+    validate: {
+      validator() {
+        if (this.lname.length !== 0) {
+          let patt = new RegExp(/\d/)
+          if (patt.test(this.lname)) {
+            throw new Error('Last name must be contained with characther only')
+          }
+          if (this.lname.length < 3) {
+            throw new Error('Last name length must be greater than 2')
+          }
+        }
+      }
+    }
   },
   verified: {
     type: Number,
@@ -20,11 +44,41 @@ const userSchema = new Schema({
   email: {
     type: String,
     unique: true,
-    required: [true, 'email required']
+    required: [true, 'email required'],
+    validate: {
+      validator() {
+        let patt = new RegExp(/^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/)
+        if (!patt.test(this.email)) {
+          throw new Error('Email is invalid')
+        }
+      }
+    }
   },
   password: {
     type: String,
-    required: [true, 'password required']
+    required: [true, 'password required'],
+    validate: {
+      validator() {
+        if (this.password.length < 6) {
+          throw new Error('Password length must be greater than 5')
+        }
+        let patt = new RegExp(/[^a-zA-Z0-9]/)
+        if (patt.test(this.password)) {
+          throw new Error('Password is combination beetween number and char')
+        }
+        patt = new RegExp(/[a-zA-Z]/)
+        if (patt.test(this.password)) {
+
+          patt = new RegExp(/[0-9]/)
+          if (!patt.test(this.password)) {
+            throw new Error('Password is combination beetween number and char')
+          }
+
+        } else {
+          throw new Error('Password is combination beetween number and char')
+        }
+      }
+    }
   },
   followers: [{
     type: Schema.Types.ObjectId,

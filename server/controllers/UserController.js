@@ -1,9 +1,40 @@
 const User = require('../models/userModel')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
+const kue = require('kue')
 const axios = require('axios')
+const queue = kue.createQueue()
+const errCatcher = require('../helpers/errCatcher')
+const emailSender = require('../helpers/emailSender')
+
+const {
+  sendVerification,
+  sendWellcomeEmail
+} = emailSender
 
 class UserController {
+
+  static veriryEmail(req, res) {
+    let tokenVerify = jwt.verify(req.params.id, process.env.JWT_HASH)
+
+    User.updateOne({
+        email: tokenVerify.email
+      }, {
+        verified: 1
+      })
+      .then(data => {
+        res.status(200).json({
+          status: 'success',
+          message: 'verifying email success'
+        })
+      })
+      .catch(err => {
+        res.status(500).json({
+          status: 'failed',
+          message: err.message
+        })
+      })
+  }
 
   static registration(req, res) {
     let data = {
@@ -15,17 +46,45 @@ class UserController {
 
     let user = new User(data)
 
+
     user.save()
       .then(data => {
+
+        let verifyToken = jwt.sign({
+          email: data.email
+        }, process.env.JWT_HASH)
+
+        queue.create('Email-Verification', {
+          name: data.fname,
+          toEmail: data.email,
+          verifyToken
+        }).priority('high').removeOnComplete(true).save(err => {
+          if (!err) {
+            console.log('job Email-Verification created successfuly')
+          } else {
+            console.log(err)
+          }
+        })
+
+        queue.process('Email-Verification', (job, done) => {
+          sendVerification(job.data.toEmail, job.data.name, job.data.verifyToken)
+          sendWellcomeEmail(job.data.toEmail, job.data.name)
+          done()
+        })
+
         res.status(201).json({
           status: 'success',
           message: `registration with email ${data.email} success, please verify your account before you login`
         })
       })
       .catch(err => {
+        let msg = errCatcher(err.message)
+        if (msg.indexOf(',')) {
+          msg = msg.split(',')[0]
+        }
         res.status(500).json({
           status: 'failed',
-          message: err.message
+          message: msg
         })
       })
   }

@@ -20,7 +20,7 @@
             <div style="height: 5px;"></div>
           </div>
           <div class="column">
-            <label class="ui mini label" v-for="(tag, index) in post.tagId" :key="index">{{ tag.name }}</label>
+            <label class="ui mini label" style="margin-top:5px;" v-for="(tag, index) in post.tagId" :key="index">{{ tag.name }}</label>
           </div>
         </div>
         <div class="ui four wide column">

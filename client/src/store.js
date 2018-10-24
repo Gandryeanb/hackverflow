@@ -16,14 +16,23 @@ export default new Vuex.Store({
       fname: null,
       role: null,
       avatar: null
-    }
+    },
+    changeShowSearchBox: false
   },
   mutations: {
     sendCurrentUser(state, payload) {
       state.currentUser = payload
+    },
+    sendCommandChangeShowSearchBox(state, payload) {
+      state.changeShowSearchBox = payload
     }
   },
   actions: {
+    resetShowSearchBox({
+      commit
+    }, payload) {
+      commit('sendCommandChangeShowSearchBox', payload)
+    },
     getCurrentUser({
       commit
     }, payload) {

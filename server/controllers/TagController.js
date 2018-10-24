@@ -26,6 +26,7 @@ class TagController {
 
   static getAllTag(req, res) {
     Tag.find()
+      .populate('postId')
       .then(data => {
         res.status(200).json({
           status: 'success',

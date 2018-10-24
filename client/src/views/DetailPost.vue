@@ -31,7 +31,11 @@
             </div>
           </div>
           <div class="ui fourteen wide column">
-            <img class="ui mini rounded image" :src="post.userId.avatar">
+            <div style="font-size: 13px; color:gray; text-align:right;">
+              <i class="ui eye icon"></i>
+              {{ post.views.length }}
+            </div>
+            <img class="ui mini rounded image" style="margin-top:-20px" :src="post.userId.avatar">
             <span>{{post.userId.fname}}</span>
             <div v-html="post.description" style="margin-top:10px; margin-bottom: 20px;"></div>
             <span style="font-size: 13px; color:gray">Tags: </span>
@@ -40,7 +44,7 @@
         </div>
       </div>
     </div>
-    <div class="ui sixteen wide column" v-if=" currentUser.id === post.userId._id">
+    <div class="ui sixteen wide column" v-if=" currentUser.id === post.userId._id" style="margin-top: -20px;">
       <button class="ui mini  right floated red button" @click="removePost">
         <i class="ui trash icon"></i>
         remove</button>
@@ -95,6 +99,7 @@ export default {
   created() {
     this.getPost()
   },
+  mounted() {},
   methods: {
     removePost() {
       axios({
@@ -105,6 +110,7 @@ export default {
         }
       })
         .then(data => {
+          this.$emit('reload')
           this.$router.push({ path: '/post' })
         })
         .catch(err => {
@@ -161,6 +167,28 @@ export default {
           console.log(err.response)
         })
     },
+    viewsUpdater() {
+      if (
+        this.currentUser &&
+        this.post.views.slice(this.post.views.length - 1).indexOf(this.currentUser.id) &&
+        this.post.userId._id !== this.currentUser.id
+      ) {
+        axios({
+          url: host + '/post/view/' + this.post._id,
+          method: 'put',
+          headers: {
+            token: localStorage.getItem('token')
+          }
+        })
+          .then(data => {
+            this.$emit('reload')
+            this.getPost()
+          })
+          .catch(err => {
+            console.log('failed to updated viewed for this post')
+          })
+      }
+    },
     getPost() {
       let postId = this.$router.history.current.params.id
       axios({
@@ -170,6 +198,9 @@ export default {
         .then(data => {
           this.post = data.data.data
           this.$emit('reload')
+          setTimeout(() => {
+            this.viewsUpdater()
+          }, 50)
         })
         .catch(err => {
           console.log(err.message)
