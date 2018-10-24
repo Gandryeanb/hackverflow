@@ -78,7 +78,7 @@ export default {
     loginGoogle(val) {
       let token = val.Zi.id_token
       axios({
-        url: 'http://localhost:3000/users/login/google',
+        url: host + '/users/login/google',
         headers: {
           token: token
         }

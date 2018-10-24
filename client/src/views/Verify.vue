@@ -12,14 +12,12 @@ export default {
   name: 'Verify',
   created() {
     let verifyToken = this.$router.history.current.params.id
-    console.log(verifyToken)
     axios({
       url: host + '/users/verify/' + verifyToken,
       method: 'get'
     })
       .then(data => {
         this.$router.push({ path: '/login' })
-        console.log(data.data.message)
       })
       .catch(err => {
         console.log(err.response)
